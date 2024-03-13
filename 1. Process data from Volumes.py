@@ -5,6 +5,18 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC
+# MAGIC ## Upload data do a Volume from your local computer
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
+# MAGIC <img src="https://github.com/mattiazenidb/eni-workshop/raw/main/_resources/upload.gif" style="float:right; margin-left: 10px" />
+
+# COMMAND ----------
+
 !pip install xlrd
 
 # COMMAND ----------
