@@ -34,7 +34,7 @@ current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().g
 
 # MAGIC %md
 # MAGIC
-# MAGIC ## Explore the data available in the Catalog Explorer on the right
+# MAGIC ## Explore the data available in the Catalog Explorer on the left
 
 # COMMAND ----------
 
@@ -50,7 +50,7 @@ current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().g
 
 # COMMAND ----------
 
-df_iot = spark.read.csv('/Volumes/landing/power/readings/turbines')
+df_iot = spark.read.csv('/Volumes/landing/power/turbine_raw_landing/incoming_data/')
 
 # COMMAND ----------
 
@@ -62,13 +62,17 @@ df_iot.display()
 
 # COMMAND ----------
 
+df_iot.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.incoming_data')
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC
 # MAGIC ## Read a json file instead
 
 # COMMAND ----------
 
-df_text = spark.read.text('/Volumes/landing/power/readings/engines/')
+df_text = spark.read.text('/Volumes/landing/power/turbine_raw_landing/parts/')
 
 # COMMAND ----------
 
@@ -80,7 +84,7 @@ df_text.printSchema()
 
 # COMMAND ----------
 
-df_json = spark.read.json('/Volumes/landing/power/readings/engines/')
+df_json = spark.read.json('/Volumes/landing/power/turbine_raw_landing/parts/')
 
 # COMMAND ----------
 
@@ -92,9 +96,9 @@ df_json.printSchema()
 
 # COMMAND ----------
 
-import pyspark.sql.functions as F
+from pyspark.sql import functions as F
 
-df_json = df_json.withColumn("gender", F.when(F.col("gender") == 1, "M").otherwise("F"))
+df_json = df_json.withColumn("sensors", F.explode("sensors"))
 
 # COMMAND ----------
 
@@ -103,6 +107,10 @@ df_json.display()
 # COMMAND ----------
 
 df_json.printSchema()
+
+# COMMAND ----------
+
+df_json.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.parts')
 
 # COMMAND ----------
 
