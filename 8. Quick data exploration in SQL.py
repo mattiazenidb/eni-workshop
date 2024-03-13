@@ -1,4 +1,10 @@
 # Databricks notebook source
+# MAGIC %md
+# MAGIC
+# MAGIC <img width="1000px" src="https://github.com/mattiazenidb/eni-workshop/raw/main/_resources/bi.png" />
+
+# COMMAND ----------
+
 # MAGIC %md 
 # MAGIC
 # MAGIC Link to download if you don't have an xlsx file on your laptop: https://file-examples.com/wp-content/storage/2017/02/file_example_XLS_5000.xls
