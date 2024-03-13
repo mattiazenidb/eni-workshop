@@ -22,6 +22,32 @@ current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().g
 
 # MAGIC %md
 # MAGIC
+# MAGIC ## I can read from a REST API with the requests library
+
+# COMMAND ----------
+
+url = requests.get('https://raw.githubusercontent.com/IBM/iot-predictive-analytics/master/data/iot_sensor_dataset.csv').content
+
+# COMMAND ----------
+
+raw_data = pd.read_csv(io.StringIO(url.decode('utf-8')))
+
+# COMMAND ----------
+
+df_spark_raw_data = spark.createDataFrame(raw_data)
+
+# COMMAND ----------
+
+df_spark_raw_data.count()
+
+# COMMAND ----------
+
+df_spark_raw_data.display()
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
 # MAGIC ## There is a python library that allows to read trading data from Stooq.com
 # MAGIC
 # MAGIC ```
@@ -61,7 +87,7 @@ df_bronze = spark.read.table(f'{current_user}_catalog.default.bronze_layer')
 
 # COMMAND ----------
 
-df_silver = df_bronze\
+df_silver_one = df_bronze\
         .withColumnRenamed("('Date', '')", "date")\
         .withColumnRenamed("('Close', 'ENI.DE')", "close")\
         .withColumnRenamed("('High', 'ENI.DE')", "high")\
@@ -71,19 +97,19 @@ df_silver = df_bronze\
 
 # COMMAND ----------
 
-df_silver.display()
+df_silver_one.display()
 
 # COMMAND ----------
 
-df_silver.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.silver_layer')
+df_silver_one.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.silver_one_layer')
 
 # COMMAND ----------
 
-df_silver = spark.read.table(f'{current_user}_catalog.default.silver_layer')
+df_silver_one = spark.read.table(f'{current_user}_catalog.default.silver_one_layer')
 
 # COMMAND ----------
 
-df_gold = df_silver.withColumn('date', df_silver['date'].cast('date'))
+df_silver_two = df_silver_one.withColumn('date', df_silver_one['date'].cast('date'))
 
 # COMMAND ----------
 
@@ -91,30 +117,4 @@ display(df_gold)
 
 # COMMAND ----------
 
-df_gold.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.gold_layer')
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC
-# MAGIC ## An alternative is to read from a REST API with the requests library
-
-# COMMAND ----------
-
-url = requests.get('https://raw.githubusercontent.com/IBM/iot-predictive-analytics/master/data/iot_sensor_dataset.csv').content
-
-# COMMAND ----------
-
-raw_data = pd.read_csv(io.StringIO(url.decode('utf-8')))
-
-# COMMAND ----------
-
-df_spark_raw_data = spark.createDataFrame(raw_data)
-
-# COMMAND ----------
-
-df_spark_raw_data.count()
-
-# COMMAND ----------
-
-df_spark_raw_data.display()
+df_silver_two.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.silver_two_layer')
