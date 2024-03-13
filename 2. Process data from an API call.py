@@ -1,33 +1,120 @@
 # Databricks notebook source
-# MAGIC %md 
+from pyspark.sql import SparkSession
+from pyspark.dbutils import DBUtils
+import json
+
+# COMMAND ----------
+
+spark = SparkSession.getActiveSession()
+dbutils = DBUtils(spark)
+
+# COMMAND ----------
+
+current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().getContext().toJson())["tags"]["user"].split('@')[0]
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC
-# MAGIC Link to download if you don't have an xlsx file on your laptop: https://file-examples.com/wp-content/storage/2017/02/file_example_XLS_5000.xls
+# MAGIC ## In Databricks you can run any custom python code. This includes code to read from external sources such as an API
 
 # COMMAND ----------
 
-!pip install xlrd
+# MAGIC %md
+# MAGIC
+# MAGIC ## There is a python library that allows to read trading data from Stooq.com
+# MAGIC
+# MAGIC ```
+# MAGIC Returns DataFrame/dict of Dataframes of historical stock prices from symbols, over date range, start to end.
+# MAGIC ```
 
 # COMMAND ----------
 
-from pandas import read_excel
-
-my_sheet = 'Sheet1' # change it to your sheet name, you can find your sheet name at the bottom left of your excel file
-file_name = '/Volumes/odl_user_1256917_catalog/default/odl_user_1256917_volume/file_example_XLS_5000.xls' # change it to the name of your excel file
-df = read_excel(file_name, sheet_name = my_sheet)
-print(df.head()) # shows headers with top 5 rows
+!pip install pandas_datareader
 
 # COMMAND ----------
 
-df_spark = spark.createDataFrame(df)
+import pandas_datareader as pdr
+import pyspark.pandas as ps
+import requests
+import pandas as pd
+import io
 
 # COMMAND ----------
 
-df_spark.count()
+
+dfr = pdr.stooq.StooqDailyReader(
+    symbols=['ENI.DE'],
+    start='1/1/15',
+    end='2/29/24'
+)
+
+df_bronze = spark.createDataFrame(dfr.read().reset_index())
 
 # COMMAND ----------
 
-df_bronze = df_spark.withColumnRenamed('Unnamed: 0', 'incremental_id')
+df_bronze.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.bronze_layer')
 
 # COMMAND ----------
 
-df_bronze.display()
+df_bronze = spark.read.table(f'{current_user}_catalog.default.bronze_layer')
+
+# COMMAND ----------
+
+df_silver = df_bronze\
+        .withColumnRenamed("('Date', '')", "date")\
+        .withColumnRenamed("('Close', 'ENI.DE')", "close")\
+        .withColumnRenamed("('High', 'ENI.DE')", "high")\
+        .withColumnRenamed("('Low', 'ENI.DE')", "low")\
+        .withColumnRenamed("('Open', 'ENI.DE')", "open")\
+        .withColumnRenamed("('Volume', 'ENI.DE')", "volume")
+
+# COMMAND ----------
+
+df_silver.display()
+
+# COMMAND ----------
+
+df_silver.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.silver_layer')
+
+# COMMAND ----------
+
+df_silver = spark.read.table(f'{current_user}_catalog.default.silver_layer')
+
+# COMMAND ----------
+
+df_gold = df_silver.withColumn('date', df_silver['date'].cast('date'))
+
+# COMMAND ----------
+
+display(df_gold)
+
+# COMMAND ----------
+
+df_gold.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.gold_layer')
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
+# MAGIC ## An alternative is to read from a REST API with the requests library
+
+# COMMAND ----------
+
+url = requests.get('https://raw.githubusercontent.com/IBM/iot-predictive-analytics/master/data/iot_sensor_dataset.csv').content
+
+# COMMAND ----------
+
+raw_data = pd.read_csv(io.StringIO(url.decode('utf-8')))
+
+# COMMAND ----------
+
+df_spark_raw_data = spark.createDataFrame(raw_data)
+
+# COMMAND ----------
+
+df_spark_raw_data.count()
+
+# COMMAND ----------
+
+df_spark_raw_data.display()
