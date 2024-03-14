@@ -1,33 +1,93 @@
 # Databricks notebook source
-# MAGIC %md 
+# MAGIC %md-sandbox
+# MAGIC # Deploying and orchestrating the full workflow
 # MAGIC
-# MAGIC Link to download if you don't have an xlsx file on your laptop: https://file-examples.com/wp-content/storage/2017/02/file_example_XLS_5000.xls
+# MAGIC <img style="float: right; margin-left: 10px" width="300px" src="https://raw.githubusercontent.com/QuentinAmbard/databricks-demo/main/retail/resources/images/lakehouse-retail/lakehouse-retail-churn-5.png" />
+# MAGIC
+# MAGIC All our assets are ready. We now need to define when we want our pipeline to kick in and refresh the tables.
+# MAGIC
+# MAGIC One option is to do it in continuous mode to have a streaming pipeline, providing near-realtime insight.
+# MAGIC
+# MAGIC An alternative is to wakeup the pipeline every X hours, ingest the new data (incremental) and shut down all your compute. 
+# MAGIC
+# MAGIC This is a simple configuration offering a tradeoff between uptime and ingestion latencies.
+# MAGIC
+# MAGIC In our case, we decided that the best tradoff is to ingest new data every hours:
+# MAGIC
+# MAGIC - Start the pipeline to ingest new data and refresh our tables
+# MAGIC - Refresh the DBSQL dashboard (and potentially notify downstream applications)
+# MAGIC - Retrain our model to include the lastest date and capture potential behavior change
+# MAGIC
+# MAGIC <!-- Collect usage data (view). Remove it to disable collection. View README for more details.  -->
+# MAGIC <img width="1px" src="https://ppxrzfxige.execute-api.us-west-2.amazonaws.com/v1/analytics?category=lakehouse&org_id=8752583164848723&notebook=%2F05-Workflow-orchestration%2F05-Workflow-orchestration-iot-turbine&demo_name=lakehouse-iot-platform&event=VIEW&path=%2F_dbdemos%2Flakehouse%2Flakehouse-iot-platform%2F05-Workflow-orchestration%2F05-Workflow-orchestration-iot-turbine&version=1">
 
 # COMMAND ----------
 
-!pip install xlrd
+# MAGIC %md-sandbox
+# MAGIC ## Orchestrating pipeline with Databricks Workflows
+# MAGIC
+# MAGIC <img style="float: right; margin-left: 10px" width="600px" src="https://github.com/databricks-demos/dbdemos-resources/blob/main/images/retail/lakehouse-churn/lakehouse-retail-c360-workflow.png?raw=true" />
+# MAGIC
+# MAGIC With Databricks Lakehouse, no need for external orchestrator. We can use [Workflows](/#job/list) (available on the left menu) to orchestrate our Churn pipeline within a few click.
+# MAGIC
+# MAGIC
+# MAGIC
+# MAGIC ###  Orchestrate anything anywhere
+# MAGIC With workflow, you can run diverse workloads for the full data and AI lifecycle on any cloud. Orchestrate Delta Live Tables and Jobs for SQL, Spark, notebooks, dbt, ML models and more.
+# MAGIC
+# MAGIC ### Simple - Fully managed
+# MAGIC Remove operational overhead with a fully managed orchestration service, so you can focus on your workflows not on managing your infrastructure.
+# MAGIC
+# MAGIC ### Proven reliability
+# MAGIC Have full confidence in your workflows leveraging our proven experience running tens of millions of production workloads daily across AWS, Azure and GCP.
 
 # COMMAND ----------
 
-from pandas import read_excel
-
-my_sheet = 'Sheet1' # change it to your sheet name, you can find your sheet name at the bottom left of your excel file
-file_name = '/Volumes/odl_user_1256917_catalog/default/odl_user_1256917_volume/file_example_XLS_5000.xls' # change it to the name of your excel file
-df = read_excel(file_name, sheet_name = my_sheet)
-print(df.head()) # shows headers with top 5 rows
+# MAGIC %md-sandbox
+# MAGIC
+# MAGIC ## Creating your workflow
+# MAGIC
+# MAGIC <img style="float: right; margin-left: 10px" width="600px" src="https://github.com/databricks-demos/dbdemos-resources/blob/main/images/fsi/smart-claims/fsi-claims-dashboard-full.png?raw=trueg" />
+# MAGIC
+# MAGIC A Databricks Workflow is composed of Tasks.
+# MAGIC
+# MAGIC Each task can trigger a specific job:
+# MAGIC
+# MAGIC * Delta Live Tables
+# MAGIC * SQL query / dashboard
+# MAGIC * Model retraining / inference
+# MAGIC * Notebooks
+# MAGIC * dbt
+# MAGIC * ...
+# MAGIC
+# MAGIC In this example, can see our 3 tasks:
+# MAGIC
+# MAGIC * Start the DLT pipeline to ingest new data and refresh our tables
+# MAGIC * Refresh the DBSQL dashboard (and potentially notify downstream applications)
+# MAGIC * Retrain our Churn model
 
 # COMMAND ----------
 
-df_spark = spark.createDataFrame(df)
+# MAGIC %md-sandbox
+# MAGIC
+# MAGIC ## Monitoring your runs
+# MAGIC
+# MAGIC <img style="float: right; margin-left: 10px" width="600px" src="https://raw.githubusercontent.com/QuentinAmbard/databricks-demo/main/retail/resources/images/lakehouse-retail/lakehouse-retail-churn-workflow-monitoring.png" />
+# MAGIC
+# MAGIC Once your workflow is created, we can access historical runs and receive alerts if something goes wrong!
+# MAGIC
+# MAGIC In the screenshot we can see that our workflow had multiple errors, with different runtime, and ultimately got fixed.
+# MAGIC
+# MAGIC Workflow monitoring includes errors, abnormal job duration and more advanced control!
 
 # COMMAND ----------
 
-df_spark.count()
+# MAGIC %md
+# MAGIC
+# MAGIC <img src="https://github.com/mattiazenidb/eni-workshop/raw/main/_resources/workflow.gif" style="float:right; margin-left: 10px" />
 
 # COMMAND ----------
 
-df_bronze = df_spark.withColumnRenamed('Unnamed: 0', 'incremental_id')
-
-# COMMAND ----------
-
-df_bronze.display()
+# MAGIC %md
+# MAGIC
+# MAGIC <img src="https://github.com/mattiazenidb/eni-workshop/raw/main/_resources/workflow2.gif" style="float:right; margin-left: 10px" />

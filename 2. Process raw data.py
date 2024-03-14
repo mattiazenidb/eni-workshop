@@ -5,6 +5,12 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC
+# MAGIC <img style="float:right; margin-left: 10px" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/images/manufacturing/lakehouse-iot-turbine/lakehouse-manuf-iot-turbine-spark-1.png" />
+
+# COMMAND ----------
+
 from pyspark.sql import SparkSession
 from pyspark.dbutils import DBUtils
 import json

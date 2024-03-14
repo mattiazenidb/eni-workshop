@@ -58,4 +58,27 @@ df_spark_raw_data.display()
 
 # COMMAND ----------
 
-df_spark_raw_data.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.turbine')
+df_spark_raw_data.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.turbine_intermediate')
+
+# COMMAND ----------
+
+df_turbine_intermediate = spark.read.table(f'{current_user}_catalog.default.turbine_intermediate')
+
+# COMMAND ----------
+
+df_turbine_intermediate.printSchema()
+
+# COMMAND ----------
+
+from pyspark.sql.functions import col
+
+df_turbine_intermediate = df_turbine_intermediate.withColumn("lat", col("lat").cast("double"))\
+                          .withColumn("long", col("long").cast("double"))
+
+# COMMAND ----------
+
+df_turbine_intermediate.printSchema()
+
+# COMMAND ----------
+
+df_turbine_intermediate.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.turbine')
