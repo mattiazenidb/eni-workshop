@@ -167,13 +167,3 @@ df_bronze = df_spark.withColumnRenamed('Unnamed: 0', 'incremental_id')
 # COMMAND ----------
 
 df_bronze.display()
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC
-# MAGIC ## The ultimate goal of Data Engineering is to write curated data (cleaned, verified, certified) to tables that others can use
-
-# COMMAND ----------
-
-df_json.write.saveAsTable(f"{current_user}_catalog.default.table_json")
