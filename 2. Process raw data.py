@@ -154,7 +154,7 @@ df_pandas.head() # shows headers with top 5 rows
 
 # COMMAND ----------
 
-df_spark = spark.createDataFrame(df)
+df_spark = spark.createDataFrame(df_pandas)
 
 # COMMAND ----------
 
