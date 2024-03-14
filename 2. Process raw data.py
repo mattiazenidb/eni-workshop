@@ -62,7 +62,7 @@ df_iot.display()
 
 # COMMAND ----------
 
-df_iot.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.incoming_data')
+df_iot.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.sensor_bronze')
 
 # COMMAND ----------
 
