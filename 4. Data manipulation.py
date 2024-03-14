@@ -11,6 +11,27 @@
 
 # COMMAND ----------
 
+from pyspark.sql import SparkSession
+from pyspark.dbutils import DBUtils
+import json
+
+# COMMAND ----------
+
+spark = SparkSession.getActiveSession()
+dbutils = DBUtils(spark)
+
+# COMMAND ----------
+
+current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().getContext().toJson())["tags"]["user"].split('@')[0]
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC
-# MAGIC ## Now that we have ingested all the data from the different sourcewe should move to the enrichment/aggregation part
+# MAGIC ## Now that we have ingested all the data from the different sources we should enrich/aggregate
+
+# COMMAND ----------
+
+df_sensor_bronze = spark.read.table(f'{current_user}_catalog.default.sensor_bronze')
+df_turbine = spark.read.table(f'{current_user}_catalog.default.turbine')
+df_historical_turbine_status = spark.read.table(f'{current_user}_catalog.default.historical_turbine_status')

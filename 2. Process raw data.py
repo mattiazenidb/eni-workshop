@@ -20,12 +20,6 @@ current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().g
 
 # COMMAND ----------
 
-# MAGIC %md 
-# MAGIC
-# MAGIC Link to download if you don't have an xlsx file on your laptop: https://file-examples.com/wp-content/storage/2017/02/file_example_XLS_5000.xls
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC
 # MAGIC ## Databricks has native capabilities to read a multitude of formats: delta, csv, xml, json, avro, parquet, etc etc
@@ -123,6 +117,12 @@ df_json.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{cur
 # MAGIC %md
 # MAGIC
 # MAGIC ## Upload an Excel file to a Volume from your local computer
+
+# COMMAND ----------
+
+# MAGIC %md 
+# MAGIC
+# MAGIC Link to download if you don't have an xlsx file on your laptop: https://file-examples.com/wp-content/storage/2017/02/file_example_XLS_5000.xls
 
 # COMMAND ----------
 
