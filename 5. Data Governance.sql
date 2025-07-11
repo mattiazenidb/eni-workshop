@@ -139,3 +139,13 @@ GRANT USAGE ON SCHEMA ${current_user}_catalog.default TO `account users` ;
 -- COMMAND ----------
 
 SHOW GRANT ON ${current_user}_catalog.default.turbine_training_dataset
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC seguire i commenti per guidare nell UI:
+-- MAGIC Spiegazione RBAC e Immagine con i gli oggetti del mondo unity (metastore) 
+-- MAGIC
+-- MAGIC Spiegazione di come abbiamo strutturato Unity Catalog in ENI 
+-- MAGIC
+-- MAGIC Proseguo notebook che spiega come sono i grant 
