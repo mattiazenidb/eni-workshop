@@ -22,7 +22,17 @@ dbutils = DBUtils(spark)
 
 # COMMAND ----------
 
-current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().getContext().toJson())["tags"]["user"].split('@')[0]
+# Get current user (email format: user@domain.com)
+user_email = spark.sql("SELECT current_user()").collect()[0][0]
+# Optional: sanitize for catalog/schema naming conventions
+current_user = user_email.split("@")[0].replace('.', '_').replace('-', '_')
+# Build the full catalog path
+catalog_path = f"{current_user}.default.sensor_bronze"
+catalog_path_ml = f"{current_user}.default.turbine_training_dataset"
+dbutils.widgets.text("catalog_path", catalog_path)
+dbutils.widgets.text("catalog_path_ml", catalog_path_ml)
+display(current_user)
+
 
 # COMMAND ----------
 
@@ -32,7 +42,7 @@ current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().g
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SELECT COUNT(*) FROM emmanuele_bello.default.sensor_bronze
+# MAGIC SELECT count(*) FROM ${catalog_path}
 
 # COMMAND ----------
 
@@ -42,7 +52,7 @@ from pyspark.sql import SparkSession
 spark = SparkSession.builder.getOrCreate()
 
 # Read the table
-df = spark.table("emmanuele_bello.default.sensor_bronze")
+df = spark.table(f'{current_user}.default.sensor_bronze')
 
 # Count rows
 row_count = df.count()
@@ -53,7 +63,7 @@ print(f"Total number of rows: {row_count}")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SELECT * FROM emmanuele_bello.default.sensor_bronze;
+# MAGIC SELECT * FROM ${catalog_path};
 # MAGIC
 
 # COMMAND ----------
@@ -64,7 +74,7 @@ from pyspark.sql import SparkSession
 spark = SparkSession.builder.getOrCreate()
 
 # Load the table into a DataFrame
-df = spark.table("emmanuele_bello.default.sensor_bronze")
+df = spark.table(f'{current_user}.default.sensor_bronze')
 
 # Show the first few rows
 display(df)
@@ -84,7 +94,7 @@ display(df)
 # MAGIC   sensor_B,
 # MAGIC   energy,
 # MAGIC   sensor_A + sensor_B AS total_sensor_ab
-# MAGIC FROM emmanuele_bello.default.sensor_bronze;
+# MAGIC FROM ${catalog_path};
 # MAGIC
 
 # COMMAND ----------
@@ -96,7 +106,7 @@ from pyspark.sql.functions import col
 spark = SparkSession.builder.getOrCreate()
 
 # Load the table into a DataFrame
-df = spark.table("emmanuele_bello.default.sensor_bronze")
+df = spark.table(f'{current_user}.default.sensor_bronze')
 
 # Select and compute total_sensor_ab
 result_df = df.select(
@@ -123,7 +133,7 @@ display(result_df)
 # MAGIC   turbine_id,
 # MAGIC   timestamp,
 # MAGIC   energy
-# MAGIC FROM emmanuele_bello.default.sensor_bronze
+# MAGIC FROM ${catalog_path}
 # MAGIC WHERE energy < 0.0029 
 # MAGIC   AND sensor_A > -1.0
 
@@ -136,7 +146,7 @@ from pyspark.sql.functions import col
 spark = SparkSession.builder.getOrCreate()
 
 # Load the table into a DataFrame
-df = spark.table("emmanuele_bello.default.sensor_bronze")
+df = spark.table(f'{current_user}.default.sensor_bronze')
 
 # Apply filtering and select columns
 filtered_df = df.filter(
@@ -159,8 +169,8 @@ display(filtered_df)
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC   SELECT turbine_id, energy  FROM emmanuele_bello.default.sensor_bronze
-# MAGIC   WHERE energy < (SELECT AVG(energy) as avg_energy FROM emmanuele_bello.default.sensor_bronze) AND turbine_id IN ('6214f4a3-8173-89f4-87fe-683fae6da5b5', '25da23fd-e0e1-2848-f85c-4315228854e6')
+# MAGIC   SELECT turbine_id, energy  FROM ${catalog_path}
+# MAGIC   WHERE energy < (SELECT AVG(energy) as avg_energy FROM ${catalog_path}) AND turbine_id IN ('6214f4a3-8173-89f4-87fe-683fae6da5b5', '25da23fd-e0e1-2848-f85c-4315228854e6')
 
 # COMMAND ----------
 
@@ -171,7 +181,7 @@ from pyspark.sql.functions import col, avg
 spark = SparkSession.builder.getOrCreate()
 
 # Load the table
-df = spark.table("emmanuele_bello.default.sensor_bronze")
+df = spark.table(f'{current_user}.default.sensor_bronze')
 
 # Compute average energy (subquery equivalent)
 avg_energy = df.select(avg("energy").alias("avg_energy")).collect()[0]["avg_energy"]
@@ -204,14 +214,14 @@ display(result_df)
 # MAGIC   SELECT 
 # MAGIC     turbine_id,
 # MAGIC     AVG(sensor_D) AS avg_sensor_D
-# MAGIC   FROM emmanuele_bello.default.sensor_bronze
+# MAGIC   FROM ${catalog_path}
 # MAGIC   GROUP BY turbine_id
 # MAGIC )
 # MAGIC SELECT 
 # MAGIC   b.turbine_id,
 # MAGIC   b.sensor_D,
 # MAGIC   a.avg_sensor_D
-# MAGIC FROM emmanuele_bello.default.sensor_bronze b
+# MAGIC FROM ${catalog_path} b
 # MAGIC JOIN avg_sensor_per_turbine a
 # MAGIC   ON b.turbine_id = a.turbine_id
 # MAGIC ORDER BY b.turbine_id, b.sensor_D DESC;
@@ -226,7 +236,7 @@ from pyspark.sql.functions import col, avg
 spark = SparkSession.builder.getOrCreate()
 
 # Load the base table
-df = spark.table("emmanuele_bello.default.sensor_bronze")
+df = spark.table(f'{current_user}.default.sensor_bronze')
 
 # Step 1: Calculate average sensor_D per turbine (CTE equivalent)
 avg_df = df.groupBy("turbine_id").agg(
@@ -253,7 +263,7 @@ display(joined_df)
 # MAGIC SELECT 
 # MAGIC   turbine_id,
 # MAGIC   ROUND(AVG(energy), 6) AS avg_energy
-# MAGIC FROM emmanuele_bello.default.sensor_bronze
+# MAGIC FROM ${catalog_path}
 # MAGIC GROUP BY turbine_id
 # MAGIC ORDER BY avg_energy DESC;
 # MAGIC
@@ -267,7 +277,7 @@ from pyspark.sql.functions import col, avg, round
 spark = SparkSession.builder.getOrCreate()
 
 # Load the table
-df = spark.table("emmanuele_bello.default.sensor_bronze")
+df = spark.table(f'{current_user}.default.sensor_bronze')
 
 # Group by turbine_id and calculate rounded average energy
 result_df = df.groupBy("turbine_id") \
@@ -293,7 +303,7 @@ display(result_df)
 # MAGIC   energy,
 # MAGIC   LAG(energy) OVER (PARTITION BY turbine_id ORDER BY timestamp) AS previous_energy,
 # MAGIC   energy - LAG(energy) OVER (PARTITION BY turbine_id ORDER BY timestamp) AS delta_energy
-# MAGIC FROM emmanuele_bello.default.sensor_bronze;
+# MAGIC FROM ${catalog_path};
 # MAGIC
 
 # COMMAND ----------
@@ -306,7 +316,7 @@ from pyspark.sql.functions import col, lag
 spark = SparkSession.builder.getOrCreate()
 
 # Load the table
-df = spark.table("emmanuele_bello.default.sensor_bronze")
+df = spark.table(f'{current_user}.default.sensor_bronze')
 
 # Define the window specification
 window_spec = Window.partitionBy("turbine_id").orderBy("timestamp")
@@ -344,7 +354,7 @@ display(result_df)
 # MAGIC   turbine_id,
 # MAGIC   energy,
 # MAGIC   categorize_energy(energy) AS energy_level
-# MAGIC FROM emmanuele_bello.default.sensor_bronze;
+# MAGIC FROM ${catalog_path};
 # MAGIC
 
 # COMMAND ----------
@@ -393,4 +403,4 @@ display(df_sensor_bronze)
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SELECT * FROM emmanuele_bello.default.turbine_training_dataset
+# MAGIC SELECT * FROM ${catalog_path_ml}
