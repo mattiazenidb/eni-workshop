@@ -37,7 +37,21 @@ display(current_user)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Data Manipulation in Databricks using SQL and Spark
+# MAGIC # 📘 Data Manipulation in Databricks using SQL and Spark
+# MAGIC
+# MAGIC Welcome to this notebook on **data manipulation** in **Databricks**, where we explore how to transform, filter, and manage data using both **SQL** and **Apache Spark (PySpark)**.
+# MAGIC
+# MAGIC This guide covers practical examples and best practices for working with structured data, using the full potential of the **Databricks Lakehouse Platform**.
+# MAGIC
+# MAGIC ## 📌 Objectives
+# MAGIC By the end of this notebook, you will learn how to:
+# MAGIC - Query and manipulate data using Databricks SQL
+# MAGIC - Perform transformations using Spark DataFrames
+# MAGIC - Apply filtering, joins, and aggregations efficiently
+# MAGIC - Understand how SQL and Spark APIs can complement each other
+# MAGIC
+# MAGIC > 🛠️ This notebook is intended for data engineers, analysts, and data scientists working with large-scale datasets on Databricks.
+# MAGIC
 
 # COMMAND ----------
 
@@ -83,7 +97,12 @@ display(df)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC SELECT - Basic column selection with aliasing
+# MAGIC ### SELECT – Basic Column Selection with Aliasing
+# MAGIC
+# MAGIC In both **SQL** and **Spark (PySpark)**, selecting specific columns from a dataset is one of the most fundamental operations in data manipulation. Often, you may also want to rename (or alias) columns to make your results clearer, especially when preparing data for reporting or downstream transformations. 
+# MAGIC
+# MAGIC This section demonstrates how to perform basic column selection and apply aliases using both SQL syntax and PySpark methods, helping you gain flexibility across declarative and programmatic approaches in Databricks.
+# MAGIC
 
 # COMMAND ----------
 
@@ -124,7 +143,14 @@ display(result_df)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC WHERE - Filter high energy readings
+# MAGIC ### WHERE – Filter High Energy Readings
+# MAGIC
+# MAGIC Filtering data is a crucial step in any data analysis workflow. The `WHERE` clause in SQL, and its equivalent filtering methods in PySpark, allow you to extract only the rows that meet specific conditions.
+# MAGIC
+# MAGIC This technique is essential for narrowing down your analysis to the most relevant or critical data points, and can be used for anomaly detection, monitoring, and reporting in energy-related datasets.
+# MAGIC
+# MAGIC We’ll explore how to apply these filters using both SQL and PySpark within the Databricks environment.
+# MAGIC
 
 # COMMAND ----------
 
@@ -164,7 +190,14 @@ display(filtered_df)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC Subqueries — Turbines with above-average energy
+# MAGIC ### Subqueries — Turbines with Above-Average Energy
+# MAGIC
+# MAGIC Subqueries, also known as nested queries, are essential for writing expressive and flexible SQL or Spark transformations. They allow a query to reference the result of another query, enabling more complex filtering, aggregation, and comparison logic.
+# MAGIC
+# MAGIC This technique is particularly useful when you need to compare individual rows to a derived set of values — such as averages, thresholds, or dynamically computed metrics — without hardcoding those values into your logic.
+# MAGIC
+# MAGIC In Databricks, subqueries can be written using standard SQL syntax or expressed programmatically using PySpark APIs, offering a scalable and modular approach to data analysis.
+# MAGIC
 
 # COMMAND ----------
 
@@ -205,7 +238,16 @@ display(result_df)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC CTE (Common Table Expression) — Normalize sensor_D readings
+# MAGIC ### CTE (Common Table Expression) — Normalize sensor_D Readings
+# MAGIC
+# MAGIC Common Table Expressions (CTEs) are an essential tool in both SQL and Spark for structuring complex queries. They allow you to define a temporary, named result set within a query, improving readability and maintainability by breaking down logic into smaller, understandable steps.
+# MAGIC
+# MAGIC In **SQL**, CTEs are defined using the `WITH` clause and are especially helpful when you need to reference intermediate results multiple times within a query.
+# MAGIC
+# MAGIC In **Spark (PySpark SQL)**, while there is no native CTE syntax, similar functionality can be achieved using temporary views or chaining transformations on DataFrames. This enables you to modularize logic and reuse intermediate computations cleanly within your Spark pipelines.
+# MAGIC
+# MAGIC CTEs are particularly useful for preprocessing steps like normalization, filtering, and aggregations before applying final logic or transformations.
+# MAGIC
 
 # COMMAND ----------
 
@@ -255,7 +297,16 @@ display(joined_df)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC GROUP BY — Average energy per turbine
+# MAGIC ### GROUP BY — Average Energy per Turbine
+# MAGIC
+# MAGIC The `GROUP BY` clause is a powerful feature in both SQL and Spark that enables aggregation of data based on one or more categorical columns. It is commonly used to compute summary statistics — such as counts, averages, or totals — for each group of values.
+# MAGIC
+# MAGIC In **SQL**, `GROUP BY` is used with aggregate functions like `AVG()`, `SUM()`, or `COUNT()` to analyze data trends or performance across distinct categories, such as turbines, sensors, or locations.
+# MAGIC
+# MAGIC In **Spark**, similar grouping and aggregation can be performed using the `groupBy()` method on a DataFrame, followed by aggregation functions from the PySpark API. This approach is efficient and scalable for large datasets in distributed environments.
+# MAGIC
+# MAGIC Grouping is essential in scenarios where insights need to be derived per entity — such as calculating the average energy output per turbine — enabling data-driven decision making.
+# MAGIC
 
 # COMMAND ----------
 
@@ -291,8 +342,17 @@ display(result_df)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC WINDOWING FUNCTIONS — Energy change over time per turbine
-# MAGIC Using LAG, https://learn.microsoft.com/en-gb/azure/databricks/sql/language-manual/functions/lag
+# MAGIC ### WINDOWING FUNCTIONS — Energy Change Over Time per Turbine
+# MAGIC
+# MAGIC Window functions enable advanced analytics across a set of rows related to the current row, without aggregating the result set. This is especially powerful for time-series analysis, where tracking changes or trends is essential.
+# MAGIC
+# MAGIC In **SQL**, functions like `LAG()` allow you to compare the current row’s value with a previous one within a defined partition (e.g., per turbine), making it possible to calculate changes in energy over time.
+# MAGIC
+# MAGIC In **Spark**, similar behavior can be achieved using the `Window` specification in PySpark. Functions like `lag()` can be used to access prior values within a partition, supporting row-wise comparisons across time or sequence.
+# MAGIC
+# MAGIC For more details on the `LAG` function and other window functions in Databricks SQL, refer to the documentation:  
+# MAGIC 👉 [Databricks SQL: LAG function](https://learn.microsoft.com/en-gb/azure/databricks/sql/language-manual/functions/lag)
+# MAGIC
 
 # COMMAND ----------
 
@@ -333,7 +393,14 @@ display(result_df)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC UDF (User-Defined Function) — Categorize energy (SQL VERSION)
+# MAGIC ### UDF (User-Defined Function) — Categorize Energy (SQL Version)
+# MAGIC
+# MAGIC User-Defined Functions (UDFs) allow you to extend the capabilities of Databricks SQL by embedding custom logic that isn’t available through built-in functions. This is particularly useful when classifying or transforming data in ways specific to your business rules.
+# MAGIC
+# MAGIC In SQL, you can register and call a UDF to categorize energy readings into buckets (e.g., low, medium, high) based on thresholds. Once defined, the UDF behaves like any other SQL function, enabling reuse across queries and simplifying complex conditional logic.
+# MAGIC
+# MAGIC Keep in mind that UDFs in SQL may have performance trade-offs compared to built-in functions, so they should be used when necessary logic cannot be expressed otherwise.
+# MAGIC
 
 # COMMAND ----------
 
@@ -360,7 +427,14 @@ display(result_df)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC UDF (User-Defined Function) — Categorize sensor_E values (Spark VERSION)
+# MAGIC ### UDF (User-Defined Function) — Categorize sensor_E values (Spark Version)
+# MAGIC
+# MAGIC In Spark, User-Defined Functions (UDFs) provide a powerful way to embed custom transformation logic into your DataFrame operations. This is especially useful when the available built-in functions are not sufficient to express the required computation or classification.
+# MAGIC
+# MAGIC By registering a Python function as a Spark UDF, you can apply complex logic — such as categorizing sensor_E values into predefined buckets (e.g., low, normal, high) — directly within your transformations. Spark UDFs integrate with `select()`, `withColumn()`, and other DataFrame APIs, offering flexible and expressive data manipulation.
+# MAGIC
+# MAGIC While UDFs add great versatility, keep in mind they may introduce some performance overhead, especially compared to native Spark functions. Use them when custom logic is essential and not easily replicated with existing operations.
+# MAGIC
 
 # COMMAND ----------
 
@@ -392,7 +466,32 @@ display(df_sensor_bronze)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC # Ready for ML Training
+# MAGIC ## ✅ Wrapping Up SQL & Spark Transformations
+# MAGIC
+# MAGIC We’ve now completed a comprehensive round of data transformations using SQL and Spark — preparing our dataset for advanced consumption. In this notebook, we:
+# MAGIC
+# MAGIC - Selected and renamed columns for improved readability
+# MAGIC - Applied filters to isolate high-value records
+# MAGIC - Used subqueries and CTEs to simplify complex logic
+# MAGIC - Aggregated data to compute meaningful metrics
+# MAGIC - Applied window functions to track changes over time
+# MAGIC - Created UDFs to enhance feature semantics
+# MAGIC
+# MAGIC These transformations have cleaned, normalized, and enriched the dataset, making it ready for a wide range of downstream use cases.
+# MAGIC
+# MAGIC ---
+# MAGIC
+# MAGIC ## 🧠 Ready for the Gold Layer: ML, BI, and Advanced Analytics
+# MAGIC
+# MAGIC With a curated and structured dataset in hand, we can now transition toward the **Gold layer** — where insights are generated and value is delivered. This next phase could include:
+# MAGIC
+# MAGIC - Training predictive models (ML/AI)
+# MAGIC - Building BI dashboards and reports
+# MAGIC - Performing time series or advanced statistical analysis
+# MAGIC - Enabling data products for internal or customer-facing applications
+# MAGIC
+# MAGIC Let’s move forward and unlock the full potential of our data!
+# MAGIC
 
 # COMMAND ----------
 

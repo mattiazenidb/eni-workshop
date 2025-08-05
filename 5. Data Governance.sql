@@ -105,7 +105,43 @@
 
 -- COMMAND ----------
 
+-- MAGIC %md
+-- MAGIC ### SHOW CATALOGS — List Available Catalogs
+-- MAGIC
+-- MAGIC This SQL command is used to display all catalogs accessible in your Databricks environment. 
+-- MAGIC
+-- MAGIC In the context of Unity Catalog, a **catalog** is the top-level container that organizes schemas (databases), tables, views, and other data objects. Catalogs help manage access control and data governance in a scalable and secure way.
+-- MAGIC
+-- MAGIC This command is especially useful for:
+-- MAGIC - Getting an overview of all available catalogs
+-- MAGIC - Validating catalog-level permissions
+-- MAGIC - Navigating the data hierarchy before querying
+-- MAGIC
+-- MAGIC ```sql
+-- MAGIC SHOW CATALOGS;
+-- MAGIC
+
+-- COMMAND ----------
+
 SHOW CATALOGS
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ### SHOW TABLES — List Tables in a Schema
+-- MAGIC
+-- MAGIC This SQL command lists all tables within a specified schema of a catalog. 
+-- MAGIC
+-- MAGIC In this example, the command is scoped to the `default` schema of the catalog assigned to the current user (e.g., `${current_user}_catalog.default`), which is a common pattern in Databricks environments using Unity Catalog for multi-user isolation.
+-- MAGIC
+-- MAGIC This is helpful for:
+-- MAGIC - Exploring available data assets before querying
+-- MAGIC - Verifying the presence of tables after ingestion or transformation
+-- MAGIC - Understanding data structure within a specific workspace
+-- MAGIC
+-- MAGIC ```sql
+-- MAGIC SHOW TABLES IN ${current_user}_catalog.default;
+-- MAGIC
 
 -- COMMAND ----------
 
@@ -113,7 +149,43 @@ SHOW TABLES IN ${current_user}_catalog.default
 
 -- COMMAND ----------
 
+-- MAGIC %md
+-- MAGIC ### SHOW GRANT — View Permissions on a Table
+-- MAGIC
+-- MAGIC This SQL command displays the list of privileges (grants) assigned to users, groups, or service principals for a specific table in Unity Catalog.
+-- MAGIC
+-- MAGIC In this example, we're checking the access controls on the table `turbine_training_dataset` located in the `default` schema of the user-specific catalog `${current_user}_catalog`.
+-- MAGIC
+-- MAGIC This is useful for:
+-- MAGIC - Auditing who has access to specific data assets
+-- MAGIC - Verifying permission propagation
+-- MAGIC - Ensuring secure access and compliance with data governance policies
+-- MAGIC
+-- MAGIC ```sql
+-- MAGIC SHOW GRANT ON ${current_user}_catalog.default.turbine_training_dataset;
+-- MAGIC
+
+-- COMMAND ----------
+
 SHOW GRANT ON ${current_user}_catalog.default.turbine_training_dataset
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ### SHOW TABLES — List All Tables in a Schema
+-- MAGIC
+-- MAGIC This SQL command lists all tables available within a specified schema.
+-- MAGIC
+-- MAGIC In this example, we are listing all the tables contained in the `power` schema of the `landing` catalog.
+-- MAGIC
+-- MAGIC This is helpful for:
+-- MAGIC - Exploring available datasets in a specific namespace
+-- MAGIC - Validating table creation
+-- MAGIC - Understanding the structure of your data environment
+-- MAGIC
+-- MAGIC ```sql
+-- MAGIC SHOW TABLES IN landing.power;
+-- MAGIC
 
 -- COMMAND ----------
 
@@ -121,11 +193,67 @@ SHOW TABLES IN landing.power
 
 -- COMMAND ----------
 
+-- MAGIC %md
+-- MAGIC ### SHOW VOLUMES — Explore Volumes in a Schema
+-- MAGIC
+-- MAGIC This SQL command lists all available volumes within a specified schema. Volumes are used in Unity Catalog to manage unstructured or semi-structured data (e.g., files, images, documents) under governance.
+-- MAGIC
+-- MAGIC In this example, we're listing all volumes in the `power` schema of the `landing` catalog.
+-- MAGIC
+-- MAGIC Use cases include:
+-- MAGIC - Browsing file-based datasets registered under Unity Catalog
+-- MAGIC - Validating storage structures available to your workspace
+-- MAGIC - Understanding file organization under governed namespaces
+-- MAGIC
+-- MAGIC ```sql
+-- MAGIC SHOW VOLUMES IN landing.power;
+-- MAGIC
+
+-- COMMAND ----------
+
 SHOW VOLUMES IN landing.power
 
 -- COMMAND ----------
 
+-- MAGIC %md
+-- MAGIC ### SHOW GRANT ON VOLUME — View Permissions on a Volume
+-- MAGIC
+-- MAGIC This SQL command returns the list of access privileges granted on a specific volume. Volumes in Unity Catalog are secure storage locations for file-based data (like CSV, JSON, Parquet), and this command helps you audit who has access and what actions they can perform.
+-- MAGIC
+-- MAGIC In this case, we are checking the permissions on the `turbine_raw_landing` volume located in the `power` schema of the `landing` catalog.
+-- MAGIC
+-- MAGIC Use cases include:
+-- MAGIC - Auditing data access policies
+-- MAGIC - Validating RBAC (Role-Based Access Control) enforcement
+-- MAGIC - Ensuring data governance compliance for unstructured data
+-- MAGIC
+-- MAGIC ```sql
+-- MAGIC SHOW GRANT ON VOLUME landing.power.turbine_raw_landing;
+-- MAGIC
+
+-- COMMAND ----------
+
 SHOW GRANT ON VOLUME landing.power.turbine_raw_landing
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ### GRANT Permissions — Allow Access to Tables, Catalogs, and Schemas
+-- MAGIC
+-- MAGIC These SQL statements assign access rights to users or groups within Unity Catalog. Specifically, this block grants the `account users` group the ability to **query a specific table**, and ensures they have the **necessary usage permissions** on the associated catalog and schema.
+-- MAGIC
+-- MAGIC This is a critical step in implementing **Role-Based Access Control (RBAC)** in a governed lakehouse environment.
+-- MAGIC
+-- MAGIC #### Breakdown of Permissions:
+-- MAGIC - `GRANT SELECT ON TABLE`: Grants read (query) access to the specified table.
+-- MAGIC - `GRANT USAGE ON CATALOG`: Allows visibility and access to the catalog itself — required before accessing any underlying schema or table.
+-- MAGIC - `GRANT USAGE ON SCHEMA`: Grants access to the schema where the table resides.
+-- MAGIC
+-- MAGIC ```sql
+-- MAGIC GRANT SELECT ON TABLE ${current_user}_catalog.default.turbine_training_dataset TO `account users`;
+-- MAGIC GRANT USAGE ON CATALOG ${current_user}_catalog TO `account users`;
+-- MAGIC GRANT USAGE ON SCHEMA ${current_user}_catalog.default TO `account users`;
+-- MAGIC
 
 -- COMMAND ----------
 
@@ -143,9 +271,61 @@ SHOW GRANT ON ${current_user}_catalog.default.turbine_training_dataset
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC seguire i commenti per guidare nell UI:
--- MAGIC Spiegazione RBAC e Immagine con i gli oggetti del mondo unity (metastore) 
+-- MAGIC # Unity Catalog Governance: RBAC and Access Control Overview
 -- MAGIC
--- MAGIC Spiegazione di come abbiamo strutturato Unity Catalog in ENI 
+-- MAGIC Unity Catalog in Databricks provides a layered and robust approach to governance and access control that is primarily based on Role-Based Access Control (RBAC), with additional support for Attribute-Based Access Control (ABAC) and fine-grained data protection mechanisms.
 -- MAGIC
--- MAGIC Proseguo notebook che spiega come sono i grant 
+-- MAGIC ## Key Governance Layers
+-- MAGIC
+-- MAGIC | Layer                         | Purpose                                                                                   | Mechanisms                                |
+-- MAGIC |-------------------------------|-------------------------------------------------------------------------------------------|-------------------------------------------|
+-- MAGIC | Workspace-level restrictions  | Limit which workspaces can access specific catalogs and storage credentials                | Workspace-level bindings                  |
+-- MAGIC | Privileges and ownership      | Control access to catalogs, schemas, tables, and other objects                             | Privileges assigned to users/groups, object ownership |
+-- MAGIC | Attribute-based policies (ABAC) | Dynamically filter/mask data based on policy and governed tags                          | Governed tags, ABAC policies (in Beta)    |
+-- MAGIC | Table-level filtering/masking | Restrict rows/columns within tables at query time                                         | Row filters, column masks, dynamic views  |
+-- MAGIC
+-- MAGIC ## RBAC: Privileges and Object Ownership
+-- MAGIC
+-- MAGIC - **Privileges:** Access to securable objects (catalogs, schemas, tables, views, functions, etc.) is controlled by assigning privileges such as:
+-- MAGIC     - `SELECT`, `MODIFY`, `USE SCHEMA`, and more, granted to individual users or groups.
+-- MAGIC - **Ownership:** Each object has an owner with full control, including the ability to:
+-- MAGIC     - Read or modify the object and its metadata
+-- MAGIC     - Grant or transfer privileges and ownership
+-- MAGIC
+-- MAGIC - **Delegable and Hierarchical:** 
+-- MAGIC     - Owners can delegate privileges without transferring ownership.
+-- MAGIC     - Privileges cascade down the hierarchy (e.g., a privilege at the catalog level flows down to schemas and tables).
+-- MAGIC
+-- MAGIC ## Unity Catalog Admin Roles
+-- MAGIC
+-- MAGIC - **Account admin:** Manages metastores, identities, account features.
+-- MAGIC - **Metastore admin:** Can manage all objects, transfer ownership, assign top-level privileges.
+-- MAGIC - **Workspace admin:** Manages workspaces, users, and workspace catalog settings.
+-- MAGIC
+-- MAGIC ## Attribute-Based Access Control (ABAC) *(Beta)*
+-- MAGIC
+-- MAGIC - **Policies are based on tags/attributes** such as user role, resource tags, location, etc. This allows fine-grained, dynamic data security.
+-- MAGIC - **Centralized, scalable:** Policies can be defined once and enforced across many objects.
+-- MAGIC - **Deny rules take precedence** over allow rules for fail-safe security.
+-- MAGIC
+-- MAGIC ## Fine-Grained Data Protection
+-- MAGIC
+-- MAGIC - **Row Filters and Column Masks:** Apply filters/masking directly to tables, often using UDFs.
+-- MAGIC - **Dynamic Views:** SQL-based logic to restrict rows/columns for additional flexibility, especially when ABAC is not used.
+-- MAGIC
+-- MAGIC ---
+-- MAGIC
+-- MAGIC ### Practical Tip
+-- MAGIC
+-- MAGIC A user’s effective permissions are the union of all privileges granted by their individual user account and any groups they belong to. Access is granted only when explicitly allowed—RBAC in Unity Catalog is explicit, not implicit.
+-- MAGIC
+-- MAGIC ---
+-- MAGIC
+-- MAGIC *References: Databricks documentation on access control and governance for Unity Catalog.*
+-- MAGIC
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC # Unity Catalog Governance: How is it composed in Eni?
+-- MAGIC ......
