@@ -1,9 +1,4 @@
 # Databricks notebook source
-# MAGIC %md
-# MAGIC Revisione ma 90%ok
-
-# COMMAND ----------
-
 # MAGIC %md-sandbox
 # MAGIC # Deploying and orchestrating the full workflow
 # MAGIC
