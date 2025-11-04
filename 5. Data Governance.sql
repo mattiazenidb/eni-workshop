@@ -95,7 +95,7 @@
 
 -- MAGIC %python
 -- MAGIC
--- MAGIC current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().getContext().toJson())["tags"]["user"].split('@')[0]
+-- MAGIC current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().getContext().safeToJson())['attributes']['user'].split('@')[0].replace('.', '_') 
 
 -- COMMAND ----------
 

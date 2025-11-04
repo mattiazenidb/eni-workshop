@@ -25,7 +25,8 @@ dbutils = DBUtils(spark)
 # Get current user (email format: user@domain.com)
 user_email = spark.sql("SELECT current_user()").collect()[0][0]
 # Optional: sanitize for catalog/schema naming conventions
-current_user = user_email.split("@")[0].replace('.', '_').replace('-', '_')
+#current_user = user_email.split("@")[0].replace('.', '_').replace('-', '_')
+current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().getContext().safeToJson())['attributes']['user'].split('@')[0].replace('.', '_') 
 # Build the full catalog path
 catalog_path = f"{current_user}.default.sensor_bronze"
 catalog_path_ml = f"{current_user}.default.turbine_training_dataset"
