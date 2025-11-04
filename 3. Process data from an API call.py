@@ -16,7 +16,7 @@ dbutils = DBUtils(spark)
 
 # COMMAND ----------
 
-current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().getContext().toJson())["tags"]["user"].split('@')[0]
+current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().getContext().safeToJson())['attributes']['user'].split('@')[0].replace('.', '_')
 
 # COMMAND ----------
 
