@@ -58,11 +58,12 @@ df_spark_raw_data.display()
 
 # COMMAND ----------
 
-df_spark_raw_data.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.turbine_intermediate')
+df_spark_raw_data.filter((df_spark_raw_data.lat != 'ERROR') & (df_spark_raw_data.long != 'ERROR')) \
+    .write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'`dit_dicox_academy-lab`.{current_user}_schema.turbine_intermediate')
 
 # COMMAND ----------
 
-df_turbine_intermediate = spark.read.table(f'{current_user}_catalog.default.turbine_intermediate')
+df_turbine_intermediate = spark.read.table(f'`dit_dicox_academy-lab`.{current_user}_schema.turbine_intermediate')
 
 # COMMAND ----------
 
@@ -81,4 +82,4 @@ df_turbine_intermediate.printSchema()
 
 # COMMAND ----------
 
-df_turbine_intermediate.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.turbine')
+df_turbine_intermediate.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'`dit_dicox_academy-lab`.{current_user}_schema.turbine')

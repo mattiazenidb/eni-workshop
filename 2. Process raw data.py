@@ -50,7 +50,7 @@ current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().g
 
 # COMMAND ----------
 
-df_iot = spark.read.csv('/Volumes/landing/power/turbine_raw_landing/incoming_data/')
+df_iot = spark.read.csv('/Volumes/dit_dicox_academy-lab/daia2/raw/morning/incoming_data/')
 
 # COMMAND ----------
 
@@ -62,7 +62,7 @@ df_iot.display()
 
 # COMMAND ----------
 
-df_iot.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.sensor_bronze')
+df_iot.write.mode('overwrite').option("overwriteSchema", "true").saveAsTable(f'`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze')
 
 # COMMAND ----------
 
@@ -72,7 +72,7 @@ df_iot.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{curr
 
 # COMMAND ----------
 
-df_text = spark.read.text('/Volumes/landing/power/turbine_raw_landing/parts/')
+df_text = spark.read.text('/Volumes/dit_dicox_academy-lab/daia2/raw/morning/parts/')
 
 # COMMAND ----------
 
@@ -84,7 +84,7 @@ df_text.printSchema()
 
 # COMMAND ----------
 
-df_json = spark.read.json('/Volumes/landing/power/turbine_raw_landing/parts/')
+df_json = spark.read.json('/Volumes/dit_dicox_academy-lab/daia2/raw/morning/parts/')
 
 # COMMAND ----------
 
@@ -110,7 +110,7 @@ df_json.printSchema()
 
 # COMMAND ----------
 
-df_json.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{current_user}_catalog.default.parts')
+df_json.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'`dit_dicox_academy-lab`.{current_user}_schema.parts')
 
 # COMMAND ----------
 
@@ -145,7 +145,7 @@ df_json.write.mode('overwrite').option("mergeSchema", "true").saveAsTable(f'{cur
 from pandas import read_excel
 
 my_sheet = 'Sheet1' # change it to your sheet name, you can find your sheet name at the bottom left of your excel file
-file_name = f'/Volumes/{current_user}_catalog/default/{current_user}_volume/file_example_XLS_5000.xls' # change it to the name of your excel file
+file_name = f'/Volumes/dit_dicox_academy-lab/{current_user}_schema/raw/file_example_XLS_5000.xls' # change it to the name of your excel file
 df_pandas = read_excel(file_name, sheet_name = my_sheet)
 
 # COMMAND ----------

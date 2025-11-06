@@ -145,7 +145,7 @@ SHOW CATALOGS
 
 -- COMMAND ----------
 
-SHOW TABLES IN ${current_user}_catalog.default
+SHOW TABLES IN `dit_dicox_academy-lab`.${current_user}_schema
 
 -- COMMAND ----------
 
@@ -167,7 +167,7 @@ SHOW TABLES IN ${current_user}_catalog.default
 
 -- COMMAND ----------
 
-SHOW GRANT ON ${current_user}_catalog.default.turbine_training_dataset
+SHOW GRANT ON `dit_dicox_academy-lab`.${current_user}_schema.turbine_intermediate
 
 -- COMMAND ----------
 
@@ -189,7 +189,7 @@ SHOW GRANT ON ${current_user}_catalog.default.turbine_training_dataset
 
 -- COMMAND ----------
 
-SHOW TABLES IN landing.power
+SHOW TABLES IN `dit_dicox_academy-lab`.daia2
 
 -- COMMAND ----------
 
@@ -211,7 +211,7 @@ SHOW TABLES IN landing.power
 
 -- COMMAND ----------
 
-SHOW VOLUMES IN landing.power
+SHOW VOLUMES IN `dit_dicox_academy-lab`.daia2
 
 -- COMMAND ----------
 
@@ -233,7 +233,7 @@ SHOW VOLUMES IN landing.power
 
 -- COMMAND ----------
 
-SHOW GRANT ON VOLUME landing.power.turbine_raw_landing
+SHOW GRANT ON VOLUME `dit_dicox_academy-lab`.daia2.raw
 
 -- COMMAND ----------
 
@@ -260,13 +260,12 @@ SHOW GRANT ON VOLUME landing.power.turbine_raw_landing
 -- Let's grant our ANALYSTS a SELECT permission:
 -- Note: make sure you created an analysts and dataengineers group first.
 
-GRANT SELECT ON TABLE ${current_user}_catalog.default.turbine_training_dataset TO `account users`;
-GRANT USAGE ON CATALOG ${current_user}_catalog TO `account users`;
-GRANT USAGE ON SCHEMA ${current_user}_catalog.default TO `account users` ;
+GRANT SELECT ON TABLE `dit_dicox_academy-lab`.${current_user}_schema.turbine_intermediate TO `account users`;
+GRANT USAGE ON SCHEMA `dit_dicox_academy-lab`.${current_user}_schema TO `account users` ;
 
 -- COMMAND ----------
 
-SHOW GRANT ON ${current_user}_catalog.default.turbine_training_dataset
+SHOW GRANT ON `dit_dicox_academy-lab`.${current_user}_schema.turbine_intermediate
 
 -- COMMAND ----------
 

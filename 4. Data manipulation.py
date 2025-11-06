@@ -22,18 +22,17 @@ dbutils = DBUtils(spark)
 
 # COMMAND ----------
 
-# Get current user (email format: user@domain.com)
-user_email = spark.sql("SELECT current_user()").collect()[0][0]
-# Optional: sanitize for catalog/schema naming conventions
-#current_user = user_email.split("@")[0].replace('.', '_').replace('-', '_')
 current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().getContext().safeToJson())['attributes']['user'].split('@')[0].replace('.', '_') 
-# Build the full catalog path
-catalog_path = f"{current_user}.default.sensor_bronze"
-catalog_path_ml = f"{current_user}.default.turbine_training_dataset"
-dbutils.widgets.text("catalog_path", catalog_path)
-dbutils.widgets.text("catalog_path_ml", catalog_path_ml)
-display(current_user)
 
+# COMMAND ----------
+
+# Build the full catalog path
+
+catalog_path = f"`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze"
+catalog_path_ml = f"`dit_dicox_academy-lab`.{current_user}_schema.turbine_training_dataset"
+
+dbutils.widgets.text('catalog_path', f"`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze")
+dbutils.widgets.text('catalog_path_ml', f"`dit_dicox_academy-lab`.{current_user}_schema.turbine_training_dataset")
 
 # COMMAND ----------
 
@@ -56,18 +55,8 @@ display(current_user)
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC SELECT count(*) FROM ${catalog_path}
-
-# COMMAND ----------
-
-from pyspark.sql import SparkSession
-
-# Create Spark session if not already existing
-spark = SparkSession.builder.getOrCreate()
-
 # Read the table
-df = spark.table(f'{current_user}.default.sensor_bronze')
+df = spark.table(f'`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze')
 
 # Count rows
 row_count = df.count()
@@ -77,19 +66,8 @@ print(f"Total number of rows: {row_count}")
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC SELECT * FROM ${catalog_path};
-# MAGIC
-
-# COMMAND ----------
-
-from pyspark.sql import SparkSession
-
-# Create Spark session if not already created
-spark = SparkSession.builder.getOrCreate()
-
 # Load the table into a DataFrame
-df = spark.table(f'{current_user}.default.sensor_bronze')
+df = spark.table(f'`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze')
 
 # Show the first few rows
 display(df)
@@ -126,7 +104,7 @@ from pyspark.sql.functions import col
 spark = SparkSession.builder.getOrCreate()
 
 # Load the table into a DataFrame
-df = spark.table(f'{current_user}.default.sensor_bronze')
+df = spark.table(f'`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze')
 
 # Select and compute total_sensor_ab
 result_df = df.select(
@@ -166,14 +144,10 @@ display(result_df)
 
 # COMMAND ----------
 
-from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 
-# Start Spark session
-spark = SparkSession.builder.getOrCreate()
-
 # Load the table into a DataFrame
-df = spark.table(f'{current_user}.default.sensor_bronze')
+df = spark.table(f'`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze')
 
 # Apply filtering and select columns
 filtered_df = df.filter(
@@ -208,14 +182,10 @@ display(filtered_df)
 
 # COMMAND ----------
 
-from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, avg
 
-# Start Spark session
-spark = SparkSession.builder.getOrCreate()
-
 # Load the table
-df = spark.table(f'{current_user}.default.sensor_bronze')
+df = spark.table(f'`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze')
 
 # Compute average energy (subquery equivalent)
 avg_energy = df.select(avg("energy").alias("avg_energy")).collect()[0]["avg_energy"]
@@ -272,14 +242,10 @@ display(result_df)
 
 # COMMAND ----------
 
-from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, avg
 
-# Start Spark session
-spark = SparkSession.builder.getOrCreate()
-
 # Load the base table
-df = spark.table(f'{current_user}.default.sensor_bronze')
+df = spark.table(f'`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze')
 
 # Step 1: Calculate average sensor_D per turbine (CTE equivalent)
 avg_df = df.groupBy("turbine_id").agg(
@@ -322,14 +288,10 @@ display(joined_df)
 
 # COMMAND ----------
 
-from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, avg, round
 
-# Start Spark session
-spark = SparkSession.builder.getOrCreate()
-
 # Load the table
-df = spark.table(f'{current_user}.default.sensor_bronze')
+df = spark.table(f'`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze')
 
 # Group by turbine_id and calculate rounded average energy
 result_df = df.groupBy("turbine_id") \
@@ -369,15 +331,12 @@ display(result_df)
 
 # COMMAND ----------
 
-from pyspark.sql import SparkSession
 from pyspark.sql.window import Window
 from pyspark.sql.functions import col, lag
 
-# Start Spark session
-spark = SparkSession.builder.getOrCreate()
 
 # Load the table
-df = spark.table(f'{current_user}.default.sensor_bronze')
+df = spark.table(f'`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze')
 
 # Define the window specification
 window_spec = Window.partitionBy("turbine_id").orderBy("timestamp")
@@ -503,4 +462,5 @@ display(df_sensor_bronze)
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC
 # MAGIC SELECT * FROM ${catalog_path_ml}
