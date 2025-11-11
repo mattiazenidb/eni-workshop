@@ -30,9 +30,11 @@ current_user = json.loads(dbutils.notebook.entry_point.getDbutils().notebook().g
 
 catalog_path = f"`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze"
 catalog_path_ml = f"`dit_dicox_academy-lab`.{current_user}_schema.turbine_training_dataset"
+func_path = f"`dit_dicox_academy-lab`.{current_user}_schema.categorize_energy"
 
 dbutils.widgets.text('catalog_path', f"`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze")
 dbutils.widgets.text('catalog_path_ml', f"`dit_dicox_academy-lab`.{current_user}_schema.turbine_training_dataset")
+dbutils.widgets.text('func_path', f"`dit_dicox_academy-lab`.{current_user}_schema.categorize_energy")
 
 # COMMAND ----------
 
@@ -91,7 +93,7 @@ display(df)
 # MAGIC   sensor_A,
 # MAGIC   sensor_B,
 # MAGIC   energy,
-# MAGIC   sensor_A + sensor_B AS total_sensor_ab
+# MAGIC   CAST(sensor_A AS DOUBLE) + CAST(sensor_B AS DOUBLE) AS total_sensor_ab
 # MAGIC FROM ${catalog_path};
 # MAGIC
 
@@ -112,7 +114,7 @@ result_df = df.select(
     col("sensor_A"),
     col("sensor_B"),
     col("energy"),
-    (col("sensor_A") + col("sensor_B")).alias("total_sensor_ab")
+    (col("sensor_A").cast('float') + col("sensor_B").cast('float')).alias("total_sensor_ab")
 )
 
 # Show the result
@@ -323,17 +325,15 @@ display(result_df)
 # MAGIC SELECT 
 # MAGIC   turbine_id,
 # MAGIC   timestamp,
-# MAGIC   energy,
-# MAGIC   LAG(energy) OVER (PARTITION BY turbine_id ORDER BY timestamp) AS previous_energy,
-# MAGIC   energy - LAG(energy) OVER (PARTITION BY turbine_id ORDER BY timestamp) AS delta_energy
+# MAGIC   CAST(energy AS DOUBLE) AS energy,
+# MAGIC   LAG(CAST(energy AS DOUBLE)) OVER (PARTITION BY turbine_id ORDER BY timestamp) AS previous_energy,
+# MAGIC   CAST(energy AS DOUBLE) - LAG(CAST(energy AS DOUBLE)) OVER (PARTITION BY turbine_id ORDER BY timestamp) AS delta_energy
 # MAGIC FROM ${catalog_path};
-# MAGIC
 
 # COMMAND ----------
 
 from pyspark.sql.window import Window
 from pyspark.sql.functions import col, lag
-
 
 # Load the table
 df = spark.table(f'`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze')
@@ -341,14 +341,14 @@ df = spark.table(f'`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze')
 # Define the window specification
 window_spec = Window.partitionBy("turbine_id").orderBy("timestamp")
 
-# Add lag column and delta calculation
-result_df = df.withColumn("previous_energy", lag("energy").over(window_spec)) \
+# Add lag column and delta calculation, casting energy columns to float
+result_df = df.withColumn("energy", col("energy").cast("float")) \
+              .withColumn("previous_energy", lag(col("energy")).over(window_spec)) \
               .withColumn("delta_energy", col("energy") - col("previous_energy")) \
               .select("turbine_id", "timestamp", "energy", "previous_energy", "delta_energy")
 
 # Show the result
 display(result_df)
-
 
 # COMMAND ----------
 
@@ -365,7 +365,7 @@ display(result_df)
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC CREATE OR REPLACE FUNCTION categorize_energy(energy DOUBLE)
+# MAGIC CREATE OR REPLACE FUNCTION ${func_path}(energy DOUBLE)
 # MAGIC RETURNS STRING
 # MAGIC RETURN 
 # MAGIC   CASE 
@@ -380,7 +380,7 @@ display(result_df)
 # MAGIC SELECT 
 # MAGIC   turbine_id,
 # MAGIC   energy,
-# MAGIC   categorize_energy(energy) AS energy_level
+# MAGIC   ${func_path}(CAST(energy AS DOUBLE)) AS energy_level
 # MAGIC FROM ${catalog_path};
 # MAGIC
 
@@ -398,30 +398,21 @@ display(result_df)
 
 # COMMAND ----------
 
-# Register UDF in PySpark
-from pyspark.sql.functions import udf
-from pyspark.sql.types import StringType
+from pyspark.sql import functions as F
 
-def categorize_energy(value):
-    if value > 0.1:
-        return "High"
-    elif value < 0.1:
-        return "Low"
-    else:
-        return "Normal"
+df = spark.table(f'`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze') \
+    .withColumn("energy_dbl", F.col("energy").cast("double")) \
+    .withColumn(
+        "energy_level",
+        F.when(F.col("energy_dbl").isNull(), F.lit(None)) \
+         .when(F.col("energy_dbl") > F.lit(0.1), F.lit("High")) \
+         .when(F.col("energy_dbl") < F.lit(0.1), F.lit("Low")) \
+         .otherwise(F.lit("Normal"))
+    ) \
+    .drop("energy_dbl") \
+    .select("turbine_id", "energy", "energy_level")
 
-spark.udf.register("categorize_energy", categorize_energy, StringType())
-
-# SQL usage
-df_sensor_bronze = spark.sql("""
-SELECT 
-  turbine_id,
-  energy,
-  categorize_energy(energy) AS energy_level
-FROM emmanuele_bello.default.sensor_bronze
-""")
-
-display(df_sensor_bronze)
+display(df)
 
 # COMMAND ----------
 
@@ -458,9 +449,3 @@ display(df_sensor_bronze)
 # MAGIC %md
 # MAGIC
 # MAGIC <img style="float:right; margin-left: 10px" src="https://github.com/databricks-demos/dbdemos-resources/raw/main/images/manufacturing/lakehouse-iot-turbine/lakehouse-manuf-iot-turbine-spark-3.png" />
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC
-# MAGIC SELECT * FROM ${catalog_path_ml}

@@ -62,6 +62,7 @@ df_iot.display()
 
 # COMMAND ----------
 
+df_iot = spark.read.option("header", "true").csv('/Volumes/dit_dicox_academy-lab/daia2/raw/morning/incoming_data/')
 df_iot.write.mode('overwrite').option("overwriteSchema", "true").saveAsTable(f'`dit_dicox_academy-lab`.{current_user}_schema.sensor_bronze')
 
 # COMMAND ----------
